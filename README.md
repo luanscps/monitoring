@@ -7,7 +7,9 @@ Prometheus + Grafana com suporte a macvlan para CasaOS
 Projeto Idealizado para o meu HOMELAB:
 
 IBM LENOVO X3650 M5 5462AC1
+
 24 x Intel(R) Xeon(R) CPU E5-2670 v3 1x Socket
+
 64GB RAM DDR4 2133 MHz 4x16GB Samsung SF4722G4CKHH6DFSDS
 RAID: ServeRAID M1215 em RAID10 de 5 drives com 638.00gb
 Virtualizado em PROXMOX v8.4
