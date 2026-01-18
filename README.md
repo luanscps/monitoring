@@ -1,6 +1,9 @@
 # 📊 Monitoring Stack para CasaOS
 
+Criado por I.A e desenvolvido por LUAN
+
 Prometheus + Grafana com suporte a macvlan para CasaOS
+
 
 ## 🎯 Características
 
