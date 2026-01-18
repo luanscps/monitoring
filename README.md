@@ -57,20 +57,20 @@ git clone https://github.com/luanscps/monitoring.git
 cd monitoring
 ```
 
-### 2. Configure as credenciais (obrigatório)
+### 2. Verifique as credenciais do AdGuard (importante!)
 
-Edite o `docker-compose.yml` e procure pela seção `adguard-exporter`:
+O `docker-compose.yml` já vem com as credenciais configuradas:
 
 ```yaml
 adguard-exporter:
   environment:
     - ADGUARD_SERVERS=http://10.41.10.130:80
-    - ADGUARD_USERNAMES=luan              # ← Seu username do AdGuard
-    - ADGUARD_PASSWORDS=sua_senha_aqui    # ← Sua senha em texto plano
+    - ADGUARD_USERNAMES=luan
+    - ADGUARD_PASSWORDS=@@101010
     - INTERVAL=30s
 ```
 
-**Importante:** Use a **senha em texto plano**, não a criptografada!
+**⚠️ Altere os valores se suas credenciais forem diferentes!**
 
 ### 3. Ajuste permissões
 
@@ -155,9 +155,11 @@ http://10.41.10.145:9618/metrics
 
 ## 🐛 Troubleshooting
 
-### AdGuard Exporter com erro "panic: no usernames supplied"
-- Verifique se `ADGUARD_USERNAMES` e `ADGUARD_PASSWORDS` não estão vazios
-- Use **texto plano** para password, não a versão criptografada
+### AdGuard Exporter com erro 401 (Unauthorized)
+- Verifique se as credenciais no `docker-compose.yml` estão corretas
+- Username deve ser o usuário do AdGuard (ex: `luan`)
+- Password deve estar **em texto plano** (não criptografada)
+- Se a API do AdGuard exigir autenticação, configure no AdGuardHome.yaml
 
 ### Grafana com erro de permissão
 ```bash
@@ -191,14 +193,14 @@ docker-compose restart grafana
 ### Node Exporter
 ```yaml
 - Coleta métricas do servidor
-- Portas expõe: /proc, /sys, /
+- Publica em: /metrics
 ```
 
 ### AdGuard Exporter
 ```yaml
 - ADGUARD_SERVERS: URL do AdGuard
-- ADGUARD_USERNAMES: Username do AdGuard
-- ADGUARD_PASSWORDS: Senha do AdGuard (texto plano)
+- ADGUARD_USERNAMES: Username do AdGuard (ex: luan)
+- ADGUARD_PASSWORDS: Senha do AdGuard em texto plano (ex: @@101010)
 - INTERVAL: Intervalo de scraping (padrão 30s)
 ```
 
@@ -238,6 +240,7 @@ docker-compose up -d
 2. **Altere credenciais padrão** do AdGuard se aplicável
 3. **Use HTTPS** em produção (configure reverse proxy com SSL)
 4. **Restrinja acesso** aos IPs por firewall
+5. **Não commite senhas** no GitHub (use variáveis de ambiente)
 
 ---
 
