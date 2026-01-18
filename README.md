@@ -1,6 +1,17 @@
-# 📊 Monitoring Stack - Prometheus + Grafana + Node Exporter + AdGuard Exporter
+# Criado por I.A e desenvolvido por LUAN 👨‍💻
 
-Stack de monitoramento completo para seu CasaOS com Prometheus, Grafana, Node Exporter e AdGuard Exporter usando macvlan.
+## Prometheus + Grafana com suporte a macvlan para CasaOS
+
+Projeto Idealizado para o meu HOMELAB:
+
+**IBM LENOVO X3650 M5 5462AC1**
+- 24 x Intel(R) Xeon(R) CPU E5-2670 v3 1x Socket
+- 64GB RAM DDR4 2133 MHz 4x16GB Samsung SF4722G4CKHH6DFSDS
+- RAID: ServeRAID M1215 em RAID10 de 5 drives com 638.00gb
+- Virtualizado em PROXMOX v8.4
+- INTRANET: MIKROTIK X64 BRIDGE + VLAN
+
+🎉🎉🎉🎉
 
 ---
 
@@ -140,7 +151,7 @@ http://10.41.10.145:9618/metrics
 
 ---
 
-## 🔍 Troubleshooting
+## 🐛 Troubleshooting
 
 ### AdGuard Exporter com erro "panic: no usernames supplied"
 - Verifique se `ADGUARD_USERNAMES` e `ADGUARD_PASSWORDS` não estão vazios
@@ -159,7 +170,7 @@ docker-compose restart grafana
 
 ---
 
-## 📝 Variáveis de Ambiente
+## ⚙️ Variáveis de Ambiente
 
 ### Prometheus
 ```yaml
