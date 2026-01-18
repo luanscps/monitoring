@@ -50,6 +50,27 @@ services:
       retries: 3
       start_period: 10s
 
+  adguard-exporter:
+    image: henrywhitaker3/adguard-exporter:latest
+    container_name: adguard-exporter
+    hostname: adguard-exporter
+    restart: unless-stopped
+    environment:
+      - ADGUARD_HOSTNAME=10.41.10.130
+      - ADGUARD_PORT=3000
+      - ADGUARD_USERNAME=
+      - ADGUARD_PASSWORD=
+      - PORT=9618
+    networks:
+      macvlan-dhcp:
+        ipv4_address: 10.41.10.145
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9618/metrics"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
