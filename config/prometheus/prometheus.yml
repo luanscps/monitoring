@@ -22,3 +22,9 @@ scrape_configs:
       - targets: ['10.41.10.144:9100']
         labels:
           instance: 'casaos-server'
+
+  - job_name: 'adguard'
+    static_configs:
+      - targets: ['10.41.10.145:9618']
+        labels:
+          instance: 'adguard-home'
