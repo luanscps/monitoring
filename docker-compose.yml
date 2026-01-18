@@ -57,7 +57,7 @@ services:
     restart: unless-stopped
     environment:
       - ADGUARD_HOSTNAME=10.41.10.130
-      - ADGUARD_PORT=3000
+      - ADGUARD_PORT=80
       - ADGUARD_USERNAME=
       - ADGUARD_PASSWORD=
       - PORT=9618
