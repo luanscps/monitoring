@@ -1,368 +1,244 @@
-# 📊 Monitoramento GRAFANA+PROMETHEUS
+# 📊 Monitoring Stack - Prometheus + Grafana + Node Exporter + AdGuard Exporter
 
-Criado por I.A e desenvolvido por LUAN 👨‍💻
+Stack de monitoramento completo para seu CasaOS com Prometheus, Grafana, Node Exporter e AdGuard Exporter usando macvlan.
 
-Prometheus + Grafana com suporte a macvlan para CasaOS
+---
 
-Projeto Idealizado para o meu HOMELAB:
+## 🚀 Serviços Inclusos
 
-IBM LENOVO X3650 M5 5462AC1
-24 x Intel(R) Xeon(R) CPU E5-2670 v3 1x Socket
-64GB RAM DDR4 2133 MHz 4x16GB Samsung SF4722G4CKHH6DFSDS
-RAID: ServeRAID M1215 em RAID10 de 5 drives com 638.00gb
-Virtualizado em PROXMOX v8.4
-
-INTRANET:
-MIKROTIK X64 BRIDGE + VLAN 
-
-🎉🎉🎉🎉
-
-
-## 🎯 Características desse projeto individual no servidor
-
-✅ **Prometheus** - Coleta e armazenamento de métricas  
-✅ **Grafana** - Visualização de dados com dashboards  
-✅ **Macvlan** - IPs estáticos na rede local (10.41.10.140 e 10.41.10.141)  
-✅ **Volumes Persistentes** - Dados em `/DATA/AppData/`  
-✅ **Healthchecks** - Verificação automática de saúde dos containers  
-✅ **Alertas** - Regras de alertas configuráveis  
-✅ **Pronto para Portainer** - Integração com Git Repository  
+| Serviço | IP | Porta | Função |
+|---------|----|----|----------|
+| **Prometheus** | 10.41.10.140 | 9090 | Coleta e armazena métricas |
+| **Grafana** | 10.41.10.141 | 3000 | Visualiza dados em dashboards |
+| **Node Exporter** | 10.41.10.144 | 9100 | Monitora saúde do servidor |
+| **AdGuard Exporter** | 10.41.10.145 | 9618 | Monitora AdGuard Home |
 
 ---
 
 ## 📋 Pré-requisitos
 
-- CasaOS instalado e rodando
-- Portainer instalado (opcional, mas recomendado)
-- Docker e Docker Compose funcionando
-- Rede macvlan `macvlan-dhcp` criada com:
-  - Subnet: `10.41.10.0/24`
-  - Gateway: `10.41.10.1`
-  - IP Range: `10.41.10.128/25`
+- Docker e Docker Compose instalados
+- Rede macvlan criada:
+  ```bash
+  docker network create -d macvlan \
+    --subnet=10.41.10.0/24 \
+    --gateway=10.41.10.1 \
+    -o parent=eth0 \
+    macvlan-dhcp
+  ```
+- Diretórios para dados:
+  ```bash
+  sudo mkdir -p /DATA/AppData/prometheus/{config,data}
+  sudo mkdir -p /DATA/AppData/grafana/data
+  sudo mkdir -p /DATA/AppData/grafana/provisioning/{datasources,dashboards}
+  ```
 
 ---
 
-## 🚀 Instalação Rápida
+## 🔧 Instalação
 
-### **Opção 1: Via Terminal (SSH)**
-
-#### 1️⃣ Clonar o repositório
+### 1. Clone o repositório
 ```bash
-cd /home/casaos
+cd ~/
 git clone https://github.com/luanscps/monitoring.git
 cd monitoring
 ```
 
-#### 2️⃣ Executar script de setup
-```bash
-bash setup.sh
-```
-Isso criará automaticamente:
-- `/DATA/AppData/prometheus/config/`
-- `/DATA/AppData/prometheus/data/`
-- `/DATA/AppData/grafana/data/`
-- `/DATA/AppData/grafana/provisioning/datasources/`
-- `/DATA/AppData/grafana/provisioning/dashboards/`
+### 2. Configure as credenciais (obrigatório)
 
-#### 3️⃣ Copiar arquivos de configuração
-```bash
-# Copiar configs do Prometheus
-cp config/prometheus/prometheus.yml /DATA/AppData/prometheus/config/
-cp config/prometheus/alert.yml /DATA/AppData/prometheus/config/
+Edite o `docker-compose.yml` e procure pela seção `adguard-exporter`:
 
-# Copiar configs do Grafana
-cp config/grafana/datasources/prometheus.yml /DATA/AppData/grafana/provisioning/datasources/
-cp config/grafana/dashboards/dashboard.yml /DATA/AppData/grafana/provisioning/dashboards/
+```yaml
+adguard-exporter:
+  environment:
+    - ADGUARD_SERVERS=http://10.41.10.130:80
+    - ADGUARD_USERNAMES=luan              # ← Seu username do AdGuard
+    - ADGUARD_PASSWORDS=sua_senha_aqui    # ← Sua senha em texto plano
+    - INTERVAL=30s
 ```
 
-#### 4️⃣ Iniciar os containers
+**Importante:** Use a **senha em texto plano**, não a criptografada!
+
+### 3. Ajuste permissões
+
+```bash
+sudo chown -R 472:472 /DATA/AppData/grafana/
+sudo chmod -R 755 /DATA/AppData/grafana/
+```
+
+### 4. Inicie os containers
+
 ```bash
 docker-compose up -d
 ```
 
-#### 5️⃣ Verificar status
+### 5. Verifique se está tudo rodando
+
 ```bash
 docker-compose ps
-```
-
-Deve aparecer:
-```
-NAME        STATUS
-prometheus  Up (healthy)
-grafana     Up (healthy)
-```
-
----
-
-### **Opção 2: Via Portainer (Git Repository)**
-
-#### 1️⃣ Acessar Portainer
-- URL: `http://seu-ip:9001`
-- Faça login
-
-#### 2️⃣ Navegar para Stacks
-- Menu esquerdo → **Stacks**
-- Clique em **"+ Add stack"** ou **"+ Adicionar stack"**
-
-#### 3️⃣ Preencher formulário
-```
-Name: monitoring
-Environment: Local
-Build method: Git repository
-```
-
-#### 4️⃣ Configurar Git Repository
-```
-Repository URL: https://github.com/luanscps/monitoring
-Repository reference: main
-Compose path: docker-compose.yml
-```
-
-#### 5️⃣ Deploy
-- Clique em **"Deploy the stack"**
-- Aguarde (~1 minuto)
-
-#### 6️⃣ Verificar
-- Stacks → monitoring → Containers
-- Deve mostrar `prometheus` e `grafana` como **running**
-
----
-
-## 📍 Acessar os Serviços
-
-Após a instalação:
-
-| Serviço | URL | IP | Credenciais |
-|---------|-----|-----|-------------|
-| **Prometheus** | [http://10.41.10.140:9090](http://10.41.10.140:9090) | 10.41.10.140 | Sem auth |
-| **Grafana** | [http://10.41.10.141:3000](http://10.41.10.141:3000) | 10.41.10.141 | admin / admin123 |
-
----
-
-## 🔐 Alterar Senha do Grafana
-
-### Pelo terminal:
-```bash
-docker exec -it grafana grafana-cli admin reset-admin-password SUA_NOVA_SENHA
-```
-
-### Pela interface:
-1. Acesse Grafana → Clique no avatar (canto superior direito)
-2. Selecione "Change password"
-3. Digite a nova senha
-
----
-
-## 📊 Importar Dashboards
-
-### Dashboard Node Exporter (ID: 1860)
-1. Acesse Grafana → **+ (Create)** → **Import**
-2. Cole o ID: `1860`
-3. Selecione a datasource: **Prometheus**
-4. Clique em **Import**
-
----
-
-## 📁 Estrutura do Projeto
-
-```
-monitoring/
-├── docker-compose.yml                      # Config dos containers
-├── setup.sh                                # Script de setup
-├── README.md                               # Este arquivo
-├── .gitignore
-└── config/
-    ├── prometheus/
-    │   ├── prometheus.yml                  # Config Prometheus
-    │   └── alert.yml                       # Regras de alertas
-    └── grafana/
-        ├── datasources/
-        │   └── prometheus.yml              # Conexão Prometheus
-        └── dashboards/
-            └── dashboard.yml               # Provisioning
-```
-
----
-
-## ⚙️ Configurações Importantes
-
-### Alterar IP do Prometheus
-Em `docker-compose.yml`, linha 21:
-```yaml
-networks:
-  macvlan-dhcp:
-    ipv4_address: 10.41.10.140  # Altere aqui
-```
-
-### Alterar IP do Grafana
-Em `docker-compose.yml`, linha 49:
-```yaml
-networks:
-  macvlan-dhcp:
-    ipv4_address: 10.41.10.141  # Altere aqui
-```
-
-### Alterar Retenção de Dados
-Em `docker-compose.yml`, linha 13:
-```yaml
-- '--storage.tsdb.retention.time=30d'  # Altere para: 7d, 15d, 60d, etc
-```
-
-### Alterar Senha Padrão do Grafana
-Em `docker-compose.yml`, linha 36:
-```yaml
-- GF_SECURITY_ADMIN_PASSWORD=admin123  # Altere aqui
-```
-
----
-
-## 🔧 Troubleshooting
-
-### ❌ Container não inicia
-```bash
-# Ver logs
 docker logs prometheus
 docker logs grafana
-
-# Verificar estrutura de pastas
-ls -la /DATA/AppData/prometheus/
-ls -la /DATA/AppData/grafana/
-
-# Verificar permissões
-sudo chown -R 65534:65534 /DATA/AppData/prometheus/
-sudo chown -R 472:472 /DATA/AppData/grafana/
+docker logs node-exporter
+docker logs adguard-exporter
 ```
-
-### ❌ Grafana não conecta ao Prometheus
-1. Acesse Grafana → Configuration → Data Sources
-2. Clique em "Prometheus"
-3. Altere URL para: `http://prometheus:9090`
-4. Clique em "Save & Test"
-
-### ❌ Rede macvlan não encontrada
-```bash
-# Verificar rede
-docker network ls
-
-# Se não existir, criar:
-docker network create -d macvlan \
-  --subnet=10.41.10.0/24 \
-  --gateway=10.41.10.1 \
-  --ip-range=10.41.10.128/25 \
-  -o parent=eth0 \
-  macvlan-dhcp
-```
-
-### ❌ Prometheus mostra "0 series"
-1. Acesse Prometheus → Status → Targets
-2. Verifique se há erros de conexão
-3. Adicione exporters conforme necessário
 
 ---
 
-## 📊 Adicionar Node Exporter
+## 🌐 Acesso aos Serviços
 
-Para monitorar o servidor CasaOS:
+### Prometheus
+```
+http://10.41.10.140:9090
+```
+- Targets: Menu → Targets (status dos scrapers)
+- Graph: Explore métricas
 
-#### 1️⃣ Adicionar ao docker-compose.yml:
-```yaml
-  node-exporter:
-    image: prom/node-exporter:latest
-    container_name: node-exporter
-    restart: unless-stopped
-    ports:
-      - "9100:9100"
-    command:
-      - '--path.procfs=/host/proc'
-      - '--path.rootfs=/'
-      - '--path.sysfs=/host/sys'
-    volumes:
-      - /proc:/host/proc:ro
-      - /sys:/host/sys:ro
-      - /:/rootfs:ro
-    networks:
-      - macvlan-dhcp
+### Grafana
+```
+http://10.41.10.141:3000
+```
+- **Login padrão:** admin / admin123
+- **Mudar senha:** Settings → User → Change Password
+
+### Node Exporter (métricas do servidor)
+```
+http://10.41.10.144:9100/metrics
 ```
 
-#### 2️⃣ Adicionar ao prometheus.yml:
-```yaml
-  - job_name: 'node-exporter'
-    static_configs:
-      - targets: ['node-exporter:9100']
+### AdGuard Exporter (métricas do AdGuard)
+```
+http://10.41.10.145:9618/metrics
 ```
 
-#### 3️⃣ Reiniciar:
+---
+
+## 📊 Configurar Datasources no Grafana
+
+1. Abra Grafana: `http://10.41.10.141:3000`
+2. Vá em **Connections** → **Data sources** → **Add data source**
+3. Escolha **Prometheus**
+4. Configure:
+   - **Name:** Prometheus
+   - **URL:** http://10.41.10.140:9090
+   - Clique **Save & test**
+
+---
+
+## 📈 Importar Dashboards
+
+### Dashboard Node Exporter (Servidor)
+1. Grafana → **Dashboards** → **Create** → **Import**
+2. Cole o ID: `1860`
+3. Selecione datasource: **Prometheus**
+4. Clique **Import**
+
+### Dashboard AdGuard
+1. Grafana → **Dashboards** → **Create** → **Import**
+2. Cole o ID: `13414`
+3. Selecione datasource: **Prometheus**
+4. Clique **Import**
+
+---
+
+## 🔍 Troubleshooting
+
+### AdGuard Exporter com erro "panic: no usernames supplied"
+- Verifique se `ADGUARD_USERNAMES` e `ADGUARD_PASSWORDS` não estão vazios
+- Use **texto plano** para password, não a versão criptografada
+
+### Grafana com erro de permissão
+```bash
+sudo chown -R 472:472 /DATA/AppData/grafana/
+sudo chmod -R 755 /DATA/AppData/grafana/
+docker-compose restart grafana
+```
+
+### Prometheus não conecta em serviços
+- Verifique se os IPs (10.41.10.140-145) estão corretos
+- Teste conectividade: `docker exec prometheus wget -O- http://10.41.10.144:9100/metrics`
+
+---
+
+## 📝 Variáveis de Ambiente
+
+### Prometheus
+```yaml
+- Retention: 30 dias
+- Scrape interval: 15s
+- Evaluation interval: 15s
+```
+
+### Grafana
+```yaml
+- Admin User: admin
+- Admin Password: admin123 (MUDE isso!)
+- Plugins: grafana-clock-panel, grafana-piechart-panel
+```
+
+### Node Exporter
+```yaml
+- Coleta métricas do servidor
+- Portas expõe: /proc, /sys, /
+```
+
+### AdGuard Exporter
+```yaml
+- ADGUARD_SERVERS: URL do AdGuard
+- ADGUARD_USERNAMES: Username do AdGuard
+- ADGUARD_PASSWORDS: Senha do AdGuard (texto plano)
+- INTERVAL: Intervalo de scraping (padrão 30s)
+```
+
+---
+
+## 🛠️ Gerenciamento
+
+### Parar os containers
 ```bash
 docker-compose down
-docker-compose up -d
 ```
 
----
-
-## 📚 Recursos Úteis
-
-- [Prometheus Docs](https://prometheus.io/docs)
-- [Grafana Docs](https://grafana.com/docs)
-- [Grafana Dashboards](https://grafana.com/grafana/dashboards)
-- [PromQL Queries](https://prometheus.io/docs/prometheus/latest/querying/basics/)
-- [CasaOS Wiki](https://wiki.casaos.io)
-
----
-
-## 🔄 Atualizar Configurações via Git
-
-Se fizer alterações no repositório:
-
-### Via Terminal:
+### Reiniciar
 ```bash
-cd ~/monitoring
-git pull origin main
-docker-compose up -d
-```
-
-### Via Portainer:
-1. Stacks → monitoring
-2. Clique em **"Pull & Redeploy"**
-3. Aguarde a conclusão
-
----
-
-## 💾 Backup e Restore
-
-### Fazer Backup:
-```bash
-# Backup das configurações
-tar -czf monitoring-backup.tar.gz /DATA/AppData/prometheus /DATA/AppData/grafana
-
-# Copiar para local seguro
-cp monitoring-backup.tar.gz /mnt/storage/backups/
-```
-
-### Restaurar Backup:
-```bash
-# Extrair
-tar -xzf monitoring-backup.tar.gz -C /
-
-# Reiniciar containers
 docker-compose restart
 ```
 
+### Ver logs
+```bash
+docker-compose logs -f prometheus
+docker-compose logs -f grafana
+docker-compose logs -f node-exporter
+docker-compose logs -f adguard-exporter
+```
+
+### Atualizar imagens
+```bash
+docker-compose pull
+docker-compose up -d
+```
+
 ---
 
-## 📝 Licença
+## 🔐 Segurança
 
-Este projeto é de código aberto e livre para uso.
-
----
-
-## 🤝 Suporte
-
-Para dúvidas ou problemas:
-1. Verifique os logs: `docker logs prometheus` / `docker logs grafana`
-2. Consulte a seção Troubleshooting
-3. Abra uma issue no GitHub
+1. **Mude a senha do Grafana** imediatamente após primeira login
+2. **Altere credenciais padrão** do AdGuard se aplicável
+3. **Use HTTPS** em produção (configure reverse proxy com SSL)
+4. **Restrinja acesso** aos IPs por firewall
 
 ---
 
-**Última atualização:** Janeiro 2026  
-**Versão:** 1.0.0
+## 📚 Referências
+
+- [Prometheus Documentation](https://prometheus.io/docs/)
+- [Grafana Documentation](https://grafana.com/docs/)
+- [Node Exporter GitHub](https://github.com/prometheus/node_exporter)
+- [AdGuard Exporter GitHub](https://github.com/henrywhitaker3/adguard-exporter)
+
+---
+
+## 📧 Suporte
+
+Este repositório foi criado para CasaOS com configuração de macvlan e IPs estáticos.
+
+Para dúvidas ou problemas, abra uma issue no GitHub! 🎯
