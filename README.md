@@ -1,4 +1,6 @@
-# Criado por I.A e desenvolvido por LUAN 👨‍💻
+# 📊 Monitoring Stack - Prometheus + Grafana + Node Exporter + AdGuard Exporter
+
+**Criado por I.A e desenvolvido por LUAN 👨‍💻**
 
 ## Prometheus + Grafana com suporte a macvlan para CasaOS
 
@@ -252,4 +254,4 @@ docker-compose up -d
 
 Este repositório foi criado para CasaOS com configuração de macvlan e IPs estáticos.
 
-Para dúvidas ou problemas, abra uma issue no GitHub! 🎯
+Para dúvidas ou problemas, abra uma issue no GitHub! 🙏
