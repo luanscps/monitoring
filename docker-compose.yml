@@ -58,7 +58,7 @@ services:
     environment:
       - ADGUARD_SERVERS=http://10.41.10.130:80
       - ADGUARD_USERNAMES=luan
-      - ADGUARD_PASSWORDS=sua_senha_aqui
+      - ADGUARD_PASSWORDS=@@101010
       - INTERVAL=30s
     networks:
       macvlan-dhcp:
