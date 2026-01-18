@@ -1,0 +1,20 @@
+# Data directories
+config/prometheus/data/
+config/grafana/data/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment
+.env
+.env.local
