@@ -1,0 +1,39 @@
+groups:
+  - name: prometheus_alerts
+    interval: 30s
+    rules:
+      - alert: PrometheusDown
+        expr: up{job="prometheus"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Prometheus está offline"
+          description: "Prometheus não respondeu por mais de 1 minuto"
+
+      - alert: HighCPUUsage
+        expr: (100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)) > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "CPU acima de 80% em {{ $labels.instance }}"
+          description: "CPU consumindo {{ $value }}%"
+
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Memória acima de 85%"
+          description: "Memória disponível: {{ $value }}%"
+
+      - alert: DiskSpaceRunningOut
+        expr: (node_filesystem_avail_bytes{fstype!="tmpfs"} / node_filesystem_size_bytes) * 100 < 10
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Espaço em disco baixo"
+          description: "Apenas {{ $value }}% livre"
